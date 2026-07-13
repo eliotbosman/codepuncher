@@ -1,0 +1,64 @@
+/* App shell: fixed side menu + screen-filling grid stage. */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--cp-bg);
+  color: var(--cp-text);
+  font-family: var(--cp-font);
+  font-size: var(--cp-fs-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+.cp-app {
+  display: grid;
+  grid-template-columns: var(--cp-sidebar-w) 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.cp-sidebar {
+  height: 100vh;
+  overflow-y: auto;
+  border-right: 1px solid var(--cp-border);
+  background: var(--cp-panel);
+}
+
+.cp-stage {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cp-stage);
+  background-image:
+    radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.04), transparent 60%);
+  overflow: hidden;
+}
+
+.cp-canvas {
+  display: block;
+  image-rendering: pixelated;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+  border-radius: 2px;
+}
+
+@media (max-width: 720px) {
+  .cp-app {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+  }
+  .cp-sidebar {
+    height: auto;
+    max-height: 45vh;
+    border-right: none;
+    border-bottom: 1px solid var(--cp-border);
+  }
+}

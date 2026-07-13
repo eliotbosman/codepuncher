@@ -1,0 +1,40 @@
+/* Design tokens: colors, spacing, type scale. */
+:root {
+  /* surfaces */
+  --cp-bg: #0e0f12;
+  --cp-stage: #17181d;
+  --cp-panel: #1d1f26;
+  --cp-panel-2: #23262f;
+  --cp-border: #2f333e;
+
+  /* text */
+  --cp-text: #e9e9ee;
+  --cp-text-dim: #9a9daa;
+  --cp-text-faint: #6b6e7b;
+
+  /* accent */
+  --cp-accent: #e8c15a;
+  --cp-accent-ink: #1a1400;
+
+  /* spacing scale */
+  --cp-s1: 4px;
+  --cp-s2: 8px;
+  --cp-s3: 12px;
+  --cp-s4: 16px;
+  --cp-s5: 24px;
+  --cp-s6: 32px;
+
+  /* radius */
+  --cp-radius: 8px;
+  --cp-radius-sm: 5px;
+
+  /* type */
+  --cp-font: "Inter", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --cp-mono: "SFMono-Regular", "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --cp-fs-title: 20px;
+  --cp-fs-body: 13px;
+  --cp-fs-label: 11px;
+  --cp-fs-small: 10px;
+
+  --cp-sidebar-w: 320px;
+}
