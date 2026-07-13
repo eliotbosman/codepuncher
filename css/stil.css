@@ -1,0 +1,355 @@
+@font-face {
+  font-family: "bxyz-pc";
+  src: url("../assets/fonts/bxyz-pc-dash-bd.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "authentic-sans-condensed-60";
+  src: url("../assets/fonts/authentic-sans-condensed-60.woff") format("woff");
+  font-display: swap;
+}
+
+:root {
+  --forsta: #212121;
+  --forsta-svag: rgb(192, 192, 192);
+  --andra: #e5dee5;
+  --andra-mork: rgb(193, 193, 193);
+  --tredje: #e2ff52;
+  --dock-h: 6.75rem;
+  --dock-fs: 0.75rem;
+  --dock-fs-hint: 0.8125rem;
+  --pill-py: 0.25rem;
+  --pill-px: 0.75rem;
+  --pill-r: 1.5rem;
+  --pill-h: calc(var(--dock-fs) * 1.2 + var(--pill-py) * 2);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-l: env(safe-area-inset-left, 0px);
+}
+
+html {
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+*, html, body {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html, body {
+  height: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--andra-mork);
+  color: var(--forsta);
+  font: 400 1rem/1.2 "authentic-sans-condensed-60", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.cp-app {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) var(--dock-h);
+  height: 100dvh;
+  width: 100vw;
+  overflow: hidden;
+  touch-action: manipulation;
+  overscroll-behavior: none;
+}
+
+.cp-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 2rem 2rem 1.5rem;
+  background: var(--andra);
+  overflow: hidden;
+  touch-action: none;
+}
+
+.cp-canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.cp-canvas--freehand { cursor: crosshair; }
+
+.cp-dock {
+  position: relative;
+  z-index: 20;
+  height: var(--dock-h);
+  background: var(--andra);
+  border-top: 4px dotted var(--andra-mork);
+  overflow: hidden;
+}
+
+.cp-dock-rad {
+  display: grid;
+  grid-template-columns: 1.1fr repeat(2, auto) minmax(0, 14rem) minmax(0, 1.4fr);
+  align-items: center;
+  gap: 0.5rem;
+  height: 100%;
+  width: 100%;
+  padding: 0 1rem;
+  font-family: "bxyz-pc", system-ui, sans-serif;
+  font-size: var(--dock-fs);
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.cp-dock-top, .cp-dock-lagen { display: contents; }
+.cp-dock-steg { grid-column: 4; min-width: 0; }
+.cp-dock-hint { grid-column: 5; display: flex; justify-content: flex-end; align-items: center; min-width: 0; }
+
+.cp-hint {
+  padding: 0.4375rem 0.625rem;
+  border-radius: var(--pill-r);
+  background: whitesmoke;
+  color: var(--forsta);
+  font: 400 var(--dock-fs-hint)/1.55 "authentic-sans-condensed-60", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+  text-align: right;
+  text-transform: none;
+}
+
+.cp-fast {
+  position: fixed;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 1rem 1.5rem;
+  font-family: "bxyz-pc", system-ui, sans-serif;
+  font-size: var(--dock-fs);
+  line-height: 1.2;
+  pointer-events: none;
+}
+
+.cp-fast > * { pointer-events: auto; }
+
+.cp-fast--vanster {
+  top: 0;
+  left: 0;
+  align-items: flex-start;
+  max-width: min(22rem, calc(100% - 5rem));
+  text-transform: lowercase;
+}
+
+.cp-sup {
+  padding: var(--pill-py) var(--pill-px);
+  border-radius: var(--pill-r);
+  background: #fff;
+  color: var(--forsta);
+  font: 400 var(--dock-fs-hint)/1.45 "authentic-sans-condensed-60", system-ui, sans-serif;
+  text-align: left;
+  text-transform: lowercase;
+}
+
+.cp-fast--hoger {
+  top: 0;
+  right: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+  text-transform: uppercase;
+}
+
+.cp-fast--hoger .cp-verktyg {
+  color: var(--forsta);
+  padding: var(--pill-py) var(--pill-px);
+  background: #fff;
+  border-radius: var(--pill-r);
+  text-transform: lowercase;
+}
+
+.cp-fast--hoger .cp-verktyg:hover { background: var(--tredje); }
+.cp-fast--hoger .cp-verktyg:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.cp-title {
+  font: inherit;
+  line-height: 1.2;
+  grid-column: 1;
+  text-align: left;
+}
+
+.cp-pill {
+  border-radius: var(--pill-r);
+  padding: var(--pill-py) var(--pill-px);
+  line-height: 1.2;
+}
+
+.cp-pill.is-active {
+  background: var(--tredje);
+  color: var(--forsta);
+}
+
+.cp-lage, .cp-nedladda, .cp-verktyg {
+  margin: 0;
+  border: none;
+  background: none;
+  color: var(--forsta);
+  font: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+  text-transform: inherit;
+}
+
+.cp-lage { white-space: nowrap; }
+.cp-verktyg { color: var(--forsta-svag); text-transform: lowercase; }
+.cp-verktyg:hover { color: var(--tredje); }
+.cp-verktyg:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.cp-steg-lista.is-dold { display: none; }
+.cp-steg-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  width: 100%;
+  max-width: 14rem;
+}
+
+.cp-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.125rem 1fr 1.125rem;
+  align-items: center;
+  width: 100%;
+  height: var(--pill-h);
+  padding: 0 0.5rem;
+  border-radius: var(--pill-r);
+  background: #fff;
+}
+
+.cp-step.cp-pill { padding: 0 0.5rem; line-height: 1.2; }
+.cp-step.cp-pill.is-active { background: var(--tredje); }
+
+.cp-step__knapp {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: none;
+  color: var(--forsta);
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.cp-step__etikett { font: inherit; line-height: 1; text-align: center; }
+
+.cp-step__varde {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  .cp-app { grid-template-rows: minmax(0, 1fr) auto; }
+
+  :root {
+    --dock-fs: 0.5625rem;
+    --dock-fs-hint: 0.6875rem;
+    --pill-py: 0.1875rem;
+    --pill-px: 0.5rem;
+    --pill-r: 0.25rem;
+    --pill-h: 4.25rem;
+  }
+
+  .cp-stage {
+    padding: calc(3.5rem + var(--safe-t)) max(0.5rem, var(--safe-r)) 0.5rem max(0.5rem, var(--safe-l));
+  }
+
+  .cp-dock { height: auto; min-height: 4.5rem; overflow: visible; }
+
+  .cp-dock-rad {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    height: auto;
+    padding: 0.625rem max(0.625rem, var(--safe-r)) calc(0.75rem + var(--safe-b)) max(0.625rem, var(--safe-l));
+  }
+
+  .cp-dock-top {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.375rem;
+    width: 100%;
+  }
+
+  .cp-dock-lagen {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    width: 100%;
+  }
+
+  .cp-title, .cp-dock-steg, .cp-dock-hint { grid-column: auto; width: 100%; }
+  .cp-dock-hint { justify-content: flex-end; }
+
+  .cp-hint {
+    width: 100%;
+    max-width: 100%;
+    padding: 0.5rem 0.625rem;
+    line-height: 1.6;
+  }
+
+  .cp-steg-lista { max-width: none; flex-direction: row; gap: 0.375rem; }
+
+  .cp-step {
+    flex: 1;
+    min-width: 0;
+    height: auto;
+    min-height: var(--pill-h);
+    grid-template-columns: 1.75rem minmax(0, 1fr) 1.75rem;
+    padding: 0 0.25rem;
+  }
+
+  .cp-step.cp-pill { padding: 0 0.25rem; }
+  .cp-step__knapp { min-height: var(--pill-h); }
+
+  .cp-step__etikett {
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cp-fast {
+    padding: calc(0.5rem + var(--safe-t)) max(0.5rem, var(--safe-r)) 0.5rem max(0.5rem, var(--safe-l));
+    font-size: var(--dock-fs);
+  }
+
+  .cp-fast--vanster { max-width: min(14rem, calc(100% - 4.5rem)); }
+
+  .cp-fast--hoger {
+    gap: 0.1875rem;
+    padding-top: calc(0.5rem + var(--safe-t));
+    padding-right: max(0.5rem, var(--safe-r));
+  }
+
+  .cp-fast--hoger .cp-verktyg, .cp-nedladda, .cp-lage { min-height: 1.75rem; }
+}
+
+@media (max-width: 24rem) {
+  :root { --dock-fs: 0.4375rem; --dock-fs-hint: 0.625rem; --pill-px: 0.25rem; }
+  .cp-title { font-size: 0.5rem; }
+}

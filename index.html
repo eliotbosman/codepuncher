@@ -2,21 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Codepuncher</title>
-    <link rel="stylesheet" href="css/variables.css" />
-    <link rel="stylesheet" href="css/layout.css" />
-    <link rel="stylesheet" href="css/controls.css" />
-    <!-- Single external dependency, isolated behind js/export/PdfDocumentBuilder.js.
-         Swap for a CDN URL if you prefer not to vendor it. -->
-    <script src="vendor/jspdf.min.js"></script>
+    <link rel="stylesheet" href="css/stil.css" />
   </head>
   <body>
     <div class="cp-app">
-      <div id="cp-sidebar" class="cp-sidebar"></div>
       <main id="cp-stage" class="cp-stage">
         <canvas id="cp-canvas" class="cp-canvas"></canvas>
       </main>
+      <div id="cp-dock" class="cp-dock"></div>
     </div>
     <script type="module" src="js/main.js"></script>
   </body>
