@@ -2,6 +2,8 @@ import { Punchkort, BROTHER, kortMm, kortPx, hallPx, hallFranPx, hallRadPx, hall
 
 const TAU = Math.PI * 2;
 const FARG_MARK = '#e2ff52';
+const DUK_MIN_KOL = 36;
+const DUK_MIN_RAD = 48;
 
 export function nod(tag, props = {}, barn = []) {
   const n = document.createElement(tag);
@@ -19,17 +21,23 @@ export function nod(tag, props = {}, barn = []) {
 
 export const ljud = { pip() {}, laddaNer() {}, bytLage() {} };
 
-export function generera(lage, rutnat, p, ruta) {
-  if (lage === 'frihand') return rutnat;
-  const bw = Math.max(1, p.uBredd | 0);
-  const bh = Math.max(1, p.uHojd | 0);
-  ruta.storlek(bw, bh, true);
-  const { bredd: b, hojd: h, data } = rutnat;
-  for (let y = 0; y < h; y++) {
-    const ty = y % bh;
-    for (let x = 0; x < b; x++) data[y * b + x] = ruta.data[ty * bw + (x % bw)];
+export function motivFranKort(rutnat, motivBredd, motivHojd) {
+  const bw = Math.min(Math.max(1, motivBredd | 0), rutnat.bredd);
+  const bh = Math.min(Math.max(1, motivHojd | 0), rutnat.hojd);
+  const data = new Uint8Array(bw * bh);
+  for (let y = 0; y < bh; y++) {
+    for (let x = 0; x < bw; x++) data[y * bw + x] = rutnat.data[y * rutnat.bredd + x];
   }
-  return rutnat;
+  return { bredd: bw, hojd: bh, data };
+}
+
+export function dukStorlek(motivBredd, motivHojd) {
+  const bw = Math.max(1, motivBredd | 0);
+  const bh = Math.max(1, motivHojd | 0);
+  return {
+    kol: bw * Math.max(2, Math.ceil(DUK_MIN_KOL / bw)),
+    rad: bh * Math.max(2, Math.ceil(DUK_MIN_RAD / bh)),
+  };
 }
 
 function ritaLinje(ctx, x1, y1, x2, y2) {
@@ -46,6 +54,18 @@ function ritaHall(ctx, x, y, r, fyll) {
   else ctx.stroke();
 }
 
+function ritaMaska(ctx, x, y, b, h) {
+  const r = Math.min(b, h) * 0.22;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + b, y, x + b, y + h, r);
+  ctx.arcTo(x + b, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + b, y, r);
+  ctx.closePath();
+  ctx.fill();
+}
+
 export class Ritare {
   constructor(canvas, spec = new Punchkort(), fysik = BROTHER) {
     this.canvas = canvas;
@@ -56,6 +76,14 @@ export class Ritare {
   }
 
   rita(rutnat, farger, { lage, uBredd, uHojd } = {}) {
+    if (lage === 'monster') {
+      this.ritaDuk(rutnat, farger, { uBredd, uHojd });
+      return;
+    }
+    this.ritaKort(rutnat, farger);
+  }
+
+  ritaKort(rutnat, farger) {
     const host = this.canvas.parentElement.getBoundingClientRect();
     const pad = 8;
     const lay = this.spec.layout(rutnat.bredd, rutnat.hojd);
@@ -109,28 +137,6 @@ export class Ritare {
       }
     }
 
-    if (lage === 'monster') {
-      const bw = Math.max(1, uBredd | 0);
-      const bh = Math.max(1, uHojd | 0);
-      ctx.setLineDash([4, 3]);
-      ctx.strokeStyle = FARG_MARK;
-      for (let tx = bw; tx < spB; tx += bw) {
-        const x = skala * (d / 2 + (offX + tx - 0.5) * sx) + 0.5;
-        ritaLinje(ctx, x, 0, x, rh);
-      }
-      for (let ty = bh; ty < spH; ty += bh) {
-        const y = skala * (d / 2 + (offY + ty - 0.5) * sy) + 0.5;
-        ritaLinje(ctx, 0, y, rb, y);
-      }
-      const tl = hallPx(offX, offY, skala, this.fysik);
-      const br = hallPx(offX + Math.min(bw, spB) - 1, offY + Math.min(bh, spH) - 1, skala, this.fysik);
-      ctx.setLineDash([]);
-      ctx.lineWidth = 1.5;
-      ctx.strokeStyle = FARG_MARK;
-      ctx.strokeRect(tl.x - hR, tl.y - hR, br.x - tl.x + hR * 2, br.y - tl.y + hR * 2);
-      ctx.lineWidth = 1;
-    }
-
     ctx.fillStyle = farger.fargB;
     for (let ry = 0; ry < spH; ry++) {
       for (let rx = 0; rx < spB; rx++) {
@@ -139,6 +145,67 @@ export class Ritare {
         ritaHall(ctx, x, y, hR, true);
       }
     }
+  }
+
+  ritaDuk(rutnat, farger, { uBredd, uHojd }) {
+    const motiv = motivFranKort(rutnat, uBredd, uHojd);
+    const duk = dukStorlek(motiv.bredd, motiv.hojd);
+    const host = this.canvas.parentElement.getBoundingClientRect();
+    const pad = 8;
+    const cell = Math.max(2, Math.min((host.width - pad * 2) / duk.kol, (host.height - pad * 2) / duk.rad));
+    const rb = Math.max(1, duk.kol * cell | 0);
+    const rh = Math.max(1, duk.rad * cell | 0);
+    const lucka = Math.max(0.5, cell * 0.12);
+    const maskB = Math.max(1, cell - lucka);
+    const maskH = Math.max(1, cell - lucka);
+
+    this.layout = null;
+
+    const dpr = devicePixelRatio || 1;
+    this.canvas.width = rb * dpr | 0;
+    this.canvas.height = rh * dpr | 0;
+    this.canvas.style.width = `${rb}px`;
+    this.canvas.style.height = `${rh}px`;
+
+    const ctx = this.ctx;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, rb, rh);
+
+    const botten = farger.fargA;
+    const garn = farger.fargB;
+    ctx.fillStyle = botten;
+    ctx.fillRect(0, 0, rb, rh);
+
+    for (let y = 0; y < duk.rad; y++) {
+      if (y % 2) {
+        ctx.fillStyle = 'rgba(0,0,0,.04)';
+        ctx.fillRect(0, y * cell, rb, cell);
+      }
+      for (let x = 0; x < duk.kol; x++) {
+        const mx = x % motiv.bredd;
+        const my = y % motiv.hojd;
+        if (!motiv.data[my * motiv.bredd + mx]) continue;
+        ctx.fillStyle = garn;
+        ritaMaska(ctx, x * cell + lucka * 0.5, y * cell + lucka * 0.5, maskB, maskH);
+      }
+    }
+
+    ctx.setLineDash([5, 4]);
+    ctx.strokeStyle = 'rgba(33,33,33,.28)';
+    ctx.lineWidth = 1;
+    for (let tx = motiv.bredd; tx < duk.kol; tx += motiv.bredd) {
+      ritaLinje(ctx, tx * cell + 0.5, 0, tx * cell + 0.5, rh);
+    }
+    for (let ty = motiv.hojd; ty < duk.rad; ty += motiv.hojd) {
+      ritaLinje(ctx, 0, ty * cell + 0.5, rb, ty * cell + 0.5);
+    }
+    ctx.setLineDash([]);
+    ctx.strokeStyle = FARG_MARK;
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(0.5, 0.5, motiv.bredd * cell - 1, motiv.hojd * cell - 1);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = 'rgba(33,33,33,.45)';
+    ctx.strokeRect(0.5, 0.5, rb - 1, rh - 1);
   }
 }
 
@@ -164,9 +231,10 @@ export class Redigerare {
   }
 
   synkaLage() {
-    const l = this.tillstand.hamta('lage');
-    this.canvas.classList.toggle('cp-canvas--freehand', l === 'frihand' || l === 'monster');
-    if (l !== 'frihand' && l !== 'monster') this.aktiv = false;
+    const frihand = this.tillstand.hamta('lage') === 'frihand';
+    this.canvas.classList.toggle('cp-canvas--freehand', frihand);
+    this.canvas.classList.toggle('cp-canvas--duk', !frihand);
+    if (!frihand) this.aktiv = false;
   }
 
   slutStreck(e) {
@@ -178,8 +246,7 @@ export class Redigerare {
   }
 
   pekare(e) {
-    const lage = this.tillstand.hamta('lage');
-    if (lage !== 'frihand' && lage !== 'monster') return;
+    if (this.tillstand.hamta('lage') !== 'frihand') return;
     if (e.pointerType === 'touch' && (e.type === 'pointerdown' || this.aktiv)) e.preventDefault();
     if (e.type === 'pointerdown') {
       this.aktiv = true;
@@ -188,7 +255,7 @@ export class Redigerare {
       this.streck = e.button === 2 || e.altKey ? 0 : 1;
     } else if (!this.aktiv) return;
     const cell = this.traff(e);
-    if (cell && this.vidRedigera(cell.x, cell.y, this.streck, lage)) this.smutsig = true;
+    if (cell && this.vidRedigera(cell.x, cell.y, this.streck, 'frihand')) this.smutsig = true;
     ljud.pip();
   }
 
@@ -283,11 +350,11 @@ export class SvgExport {
 }
 
 const LAGEN = [
-  ['frihand', 'freehand', 'click or drag to punch — right-click or alt-drag to erase'],
-  ['monster', 'pattern making', 'set tile size, punch on card — pattern repeats'],
+  ['frihand', 'draw', 'punch holes on the card — right-click or alt-drag to erase'],
+  ['monster', 'cloth preview', 'see how the punched motif repeats as knitted fabric'],
 ];
-const HINT_MONSTER = 'you make a pattern by deciding how many dots (use the [+] and [-] to adjust) across and downwards for pattern, then whatever you decided repeats in a pattern over the card...';
-const HINT_FRIHAND = 'freehand draw anywhere with the cursor... it might be that it doesn\'t punch exactly where you click, but try and undo until you figure it out...';
+const HINT_MONSTER = 'cloth preview: set motif size with [+][-] — top-left of your punchcard tiles across the fabric as it would knit. no punching here.';
+const HINT_FRIHAND = 'draw: punch holes with cursor or touch. right-click or alt-drag erases. switch to cloth preview to see the repeat in textile.';
 
 function byggStepper(etikett, nyckel) {
   const vardeEl = nod('span', { class: 'cp-step__varde' }, '8');
@@ -323,9 +390,11 @@ function hanteraAtgard(e, tillstand, vidLaddaNer) {
 export function byggPanel({ mount, tillstand, vidLaddaNer, vidAngra, vidRensa, hamtaHistorik }) {
   const lageKnappar = new Map();
   const upprepHint = nod('p', { class: 'cp-hint' }, HINT_MONSTER);
-  const breddStep = byggStepper('across', 'uBredd');
-  const hojdStep = byggStepper('down', 'uHojd');
+  const breddStep = byggStepper('motif across', 'uBredd');
+  const hojdStep = byggStepper('motif down', 'uHojd');
   const stegLista = nod('div', { class: 'cp-steg-lista' }, [breddStep.el, hojdStep.el]);
+  const app = mount.closest('.cp-app');
+  const stage = app?.querySelector('.cp-stage');
 
   function synkaLage() {
     const aktiv = tillstand.hamta('lage');
@@ -338,6 +407,8 @@ export function byggPanel({ mount, tillstand, vidLaddaNer, vidAngra, vidRensa, h
     breddStep.el.classList.toggle('is-active', monster);
     hojdStep.el.classList.toggle('is-active', monster);
     upprepHint.textContent = monster ? HINT_MONSTER : HINT_FRIHAND;
+    app?.classList.toggle('cp-app--duk', monster);
+    stage?.classList.toggle('cp-stage--duk', monster);
   }
 
   function synkaUpprep() {
@@ -353,7 +424,6 @@ export function byggPanel({ mount, tillstand, vidLaddaNer, vidAngra, vidRensa, h
     synka() { angraKnapp.disabled = !hamtaHistorik().kanAngra(); },
   };
 
-  const app = mount.closest('.cp-app');
   app.appendChild(nod('div', { class: 'cp-fast cp-fast--vanster' }, [
     nod('p', { class: 'cp-sup' }, `bxyz for de ruis /·\\ workshop with brother ${BROTHER.modell} punch cards`),
   ]));

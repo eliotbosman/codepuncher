@@ -2,7 +2,7 @@ import { KORT_KOL, KORT_RAD } from './modell.js';
 
 export const STANDARD = { lage: 'frihand', uBredd: 8, uHojd: 8, fargA: '#f4f1e8', fargB: '#1a1a1a' };
 const FAST = { bredd: KORT_KOL, hojd: KORT_RAD };
-const LAGRING = 'codepuncher-session-v3';
+const LAGRING = 'codepuncher-session-v4';
 
 function klamp(n, min, max) {
   n = n | 0;
@@ -10,8 +10,8 @@ function klamp(n, min, max) {
 }
 
 function normalisera(p) {
-  p.uBredd = klamp(p.uBredd, 1, 2000);
-  p.uHojd = klamp(p.uHojd, 1, 2000);
+  p.uBredd = klamp(p.uBredd, 1, KORT_KOL);
+  p.uHojd = klamp(p.uHojd, 1, KORT_RAD);
   return p;
 }
 
@@ -20,15 +20,12 @@ function tillBytes(a) {
 }
 
 function pack(s) {
-  return s.typ === 'monster'
-    ? { typ: 'monster', ruta: [...s.ruta], bw: s.bw, bh: s.bh, uBredd: s.uBredd, uHojd: s.uHojd }
-    : { typ: 'frihand', data: [...s.data] };
+  return { typ: 'frihand', data: [...s.data] };
 }
 
 function unpack(s) {
-  return s.typ === 'monster'
-    ? { typ: 'monster', ruta: tillBytes(s.ruta), bw: s.bw, bh: s.bh, uBredd: s.uBredd, uHojd: s.uHojd }
-    : { typ: 'frihand', data: tillBytes(s.data) };
+  if (s?.typ === 'frihand' && s.data) return { typ: 'frihand', data: tillBytes(s.data) };
+  return null;
 }
 
 export class Tillstand {
@@ -83,15 +80,17 @@ export class Sessionlagring {
   static spara({ historik }) {
     try {
       const { steg, index } = historik.serialisera();
-      sessionStorage.setItem(LAGRING, JSON.stringify({ v: 3, steg: steg.map(pack), index }));
+      sessionStorage.setItem(LAGRING, JSON.stringify({ v: 4, steg: steg.map(pack), index }));
     } catch {}
   }
 
   static las() {
     try {
       const p = JSON.parse(sessionStorage.getItem(LAGRING));
-      if (p?.v === 3 && p.steg?.length) {
-        return { steg: p.steg.map(unpack), index: Math.min(Math.max(0, p.index ?? 0), p.steg.length - 1) };
+      if (p?.v === 4 && p.steg?.length) {
+        const steg = p.steg.map(unpack).filter(Boolean);
+        if (!steg.length) return null;
+        return { steg, index: Math.min(Math.max(0, p.index ?? 0), steg.length - 1) };
       }
     } catch {}
     return null;

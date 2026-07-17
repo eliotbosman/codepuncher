@@ -72,6 +72,26 @@ body {
   touch-action: none;
 }
 
+.cp-stage--duk {
+  background:
+    linear-gradient(180deg, rgba(33, 33, 33, 0.06), transparent 42%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(33, 33, 33, 0.035) 0 1px,
+      transparent 1px 7px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(33, 33, 33, 0.03) 0 1px,
+      transparent 1px 9px
+    ),
+    #c8c2c6;
+}
+
+.cp-app--duk .cp-sup {
+  background: var(--tredje);
+}
+
 .cp-canvas {
   display: block;
   max-width: 100%;
@@ -83,6 +103,7 @@ body {
 }
 
 .cp-canvas--freehand { cursor: crosshair; }
+.cp-canvas--duk { cursor: default; }
 
 .cp-dock {
   position: relative;
